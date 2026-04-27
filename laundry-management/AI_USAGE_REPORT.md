@@ -225,6 +225,61 @@ keeps OrderController focused on order operations only
 
 ---
 
+### 7. Frontend UI
+**Prompt:**
+I'm building a frontend for a Laundry Order Management System.
+Backend is Spring Boot running on http://localhost:8080.
+
+Build a single HTML file (no React, no build tools) with:
+
+1. Dashboard Tab
+   - 3 stat cards: Total Orders, Total Revenue, Active Orders
+   - Orders breakdown by status (RECEIVED, PROCESSING, READY, DELIVERED)
+   - Fetch from GET http://localhost:8080/dashboard
+
+2. Create Order Tab
+   - Form: Customer Name, Phone Number
+   - Add multiple garments dynamically (garmentType, quantity, pricePerItem)
+   - Submit to POST http://localhost:8080/orders
+   - Show success message with Order ID and total bill
+
+3. All Orders Tab
+   - Table showing all orders with status badges
+   - Filter by status dropdown, search by customer name
+   - Fetch from GET http://localhost:8080/orders
+   - Filter calls GET http://localhost:8080/orders/filter
+
+4. Update Status Tab
+   - Input: Order ID
+   - Dropdown: RECEIVED, PROCESSING, READY, DELIVERED
+   - Submit to PATCH http://localhost:8080/orders/{id}/status?newStatus=X
+   - Show updated order details after success
+
+Design requirements:
+- Dark theme (#0e0e0e background)
+- Clean, minimal, professional
+- No external CSS frameworks
+- All in one HTML file with embedded CSS and JS
+- Use fetch() for all API calls
+- Handle loading states and errors
+- Status badges with different colors per status
+- Mobile responsive
+
+Rules:
+- Single file only
+- No jQuery, no Bootstrap
+- Vanilla JS only
+- All API calls must handle errors gracefully
+- Show user-friendly error messages
+
+**What AI gave:** Complete working single HTML file with
+all 4 tabs, fetch() API integration, status badges
+**What I fixed:** Nothing — worked on first try
+**What I learned:** Single file HTML with embedded CSS/JS
+is fastest way to ship a working frontend quickly
+
+---
+
 ## Where AI Helped Most
 - Scaffolding boilerplate saved ~2 hours
 - Catching missing fields via requirement analysis

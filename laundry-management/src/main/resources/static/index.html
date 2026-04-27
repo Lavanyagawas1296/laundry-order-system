@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laundry Order Management</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0e0e0e;
+            --panel: #171717;
+            --panel-soft: #202020;
+            --line: #2d2d2d;
+            --text: #f3f4f6;
+            --muted: #a1a1aa;
+            --accent: #38bdf8;
+            --accent-strong: #0ea5e9;
+            --danger: #fb7185;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --ready: #a78bfa;
+            --delivered: #22c55e;
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            letter-spacing: 0;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 3vw, 2.4rem);
+            font-weight: 760;
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #121212;
+        }
+
+        .tab-btn {
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            padding: 10px 12px;
+            min-height: 40px;
+        }
+
+        .tab-btn.active {
+            background: var(--panel-soft);
+            color: var(--text);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 720;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .card,
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+        }
+
+        .card {
+            padding: 18px;
+            min-height: 112px;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 760;
+            line-height: 1.1;
+        }
+
+        .panel {
+            margin-top: 16px;
+            padding: 18px;
+        }
+
+        .form-section {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .status-tile {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px;
+            background: #131313;
+        }
+
+        .status-name {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .status-count {
+            font-size: 1.45rem;
+            font-weight: 740;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #101010;
+            color: var(--text);
+            padding: 11px 12px;
+            min-height: 42px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.13);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            min-height: 42px;
+            padding: 10px 14px;
+            background: var(--accent-strong);
+            color: #041016;
+            font-weight: 700;
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .btn.danger {
+            background: transparent;
+            border-color: rgba(251, 113, 133, 0.5);
+            color: var(--danger);
+        }
+
+        .garment-row {
+            display: grid;
+            grid-template-columns: 1.5fr 0.7fr 0.8fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 10px;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: 220px minmax(220px, 1fr) auto;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        table {
+            width: 100%;
+            min-width: 780px;
+            border-collapse: collapse;
+            background: var(--panel);
+        }
+
+        th,
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 0.92rem;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 92px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .badge.RECEIVED {
+            color: #dbeafe;
+            background: rgba(59, 130, 246, 0.18);
+        }
+
+        .badge.PROCESSING {
+            color: #fef3c7;
+            background: rgba(245, 158, 11, 0.18);
+        }
+
+        .badge.READY {
+            color: #ede9fe;
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .badge.DELIVERED {
+            color: #dcfce7;
+            background: rgba(34, 197, 94, 0.18);
+        }
+
+        .message {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: #121212;
+            color: var(--text);
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            border-color: rgba(52, 211, 153, 0.45);
+            color: var(--success);
+        }
+
+        .message.error {
+            border-color: rgba(251, 113, 133, 0.45);
+            color: var(--danger);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .empty {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .detail-item {
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 10px;
+            background: #121212;
+        }
+
+        .detail-label {
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 820px) {
+            .app {
+                width: min(100% - 20px, 1180px);
+                padding-top: 18px;
+            }
+
+            .topbar,
+            .section-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .tabs {
+                width: 100%;
+            }
+
+            .tab-btn {
+                flex: 1 1 140px;
+            }
+
+            .grid,
+            .status-grid,
+            .form-grid,
+            .details {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar,
+            .garment-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header class="topbar">
+            <div>
+                <h1>Laundry Orders</h1>
+                <p class="subtitle">Manage intake, billing, and delivery status.</p>
+            </div>
+            <nav class="tabs" aria-label="Sections">
+                <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
+                <button class="tab-btn" data-tab="create" type="button">Create Order</button>
+                <button class="tab-btn" data-tab="orders" type="button">All Orders</button>
+                <button class="tab-btn" data-tab="status" type="button">Update Status</button>
+            </nav>
+        </header>
+
+        <section id="dashboard" class="tab-panel active">
+            <div class="section-header">
+                <h2>Dashboard</h2>
+                <button id="refreshDashboard" class="btn secondary" type="button">Refresh</button>
+            </div>
+            <div class="grid">
+                <article class="card">
+                    <div class="metric-label">Total Orders</div>
+                    <div id="totalOrders" class="metric-value">0</div>
+                </article>
+                <article class="card">
+                    <div class="metric-label">Total Revenue</div>
+                    <div id="totalRevenue" class="metric-value">₹0.00</div>
+                </article>
+                <article class="card">
+                    <div class="metric-label">Active Orders</div>
+                    <div id="activeOrders" class="metric-value">0</div>
+                </article>
+            </div>
+            <div class="panel">
+                <div class="section-header">
+                    <h2>Status Breakdown</h2>
+                    <span id="dashboardLoading" class="muted"></span>
+                </div>
+                <div class="status-grid">
+                    <div class="status-tile">
+                        <div class="status-name">RECEIVED</div>
+                        <div id="countReceived" class="status-count">0</div>
+                    </div>
+                    <div class="status-tile">
+                        <div class="status-name">PROCESSING</div>
+                        <div id="countProcessing" class="status-count">0</div>
+                    </div>
+                    <div class="status-tile">
+                        <div class="status-name">READY</div>
+                        <div id="countReady" class="status-count">0</div>
+                    </div>
+                    <div class="status-tile">
+                        <div class="status-name">DELIVERED</div>
+                        <div id="countDelivered" class="status-count">0</div>
+                    </div>
+                </div>
+                <div id="dashboardMessage" class="message"></div>
+            </div>
+        </section>
+
+        <section id="create" class="tab-panel">
+            <div class="section-header">
+                <h2>Create Order</h2>
+                <span id="createLoading" class="muted"></span>
+            </div>
+            <form id="orderForm" class="panel">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="customerName">Customer Name</label>
+                        <input id="customerName" name="customerName" type="text" required autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input id="phoneNumber" name="phoneNumber" type="tel" required autocomplete="tel">
+                    </div>
+                    <div class="field full">
+                        <label for="estimatedDelivery">Estimated Delivery</label>
+                        <input id="estimatedDelivery" name="estimatedDelivery" type="datetime-local">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <h2>Garments</h2>
+                        <button id="addGarment" class="btn secondary" type="button">Add Garment</button>
+                    </div>
+                    <div id="garmentList"></div>
+                </div>
+
+                <div class="actions">
+                    <button id="submitOrder" class="btn" type="submit">Create Order</button>
+                    <button id="resetOrder" class="btn secondary" type="reset">Clear</button>
+                </div>
+                <div id="createMessage" class="message"></div>
+            </form>
+        </section>
+
+        <section id="orders" class="tab-panel">
+            <div class="section-header">
+                <h2>All Orders</h2>
+                <span id="ordersLoading" class="muted"></span>
+            </div>
+            <div class="panel">
+                <div class="toolbar">
+                    <select id="filterStatus" aria-label="Filter by status">
+                        <option value="">All statuses</option>
+                        <option value="RECEIVED">RECEIVED</option>
+                        <option value="PROCESSING">PROCESSING</option>
+                        <option value="READY">READY</option>
+                        <option value="DELIVERED">DELIVERED</option>
+                    </select>
+                    <input id="searchCustomer" type="search" placeholder="Search customer name" aria-label="Search customer name">
+                    <button id="clearFilters" class="btn secondary" type="button">Clear</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Created</th>
+                                <th>Delivery</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                    <div id="ordersEmpty" class="empty">No orders loaded.</div>
+                </div>
+                <div id="ordersMessage" class="message"></div>
+            </div>
+        </section>
+
+        <section id="status" class="tab-panel">
+            <div class="section-header">
+                <h2>Update Status</h2>
+                <span id="statusLoading" class="muted"></span>
+            </div>
+            <form id="statusForm" class="panel">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="statusOrderId">Order ID</label>
+                        <input id="statusOrderId" type="text" required>
+                    </div>
+                    <div class="field">
+                        <label for="newStatus">New Status</label>
+                        <select id="newStatus" required>
+                            <option value="RECEIVED">RECEIVED</option>
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="READY">READY</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="submitStatus" class="btn" type="submit">Update Status</button>
+                </div>
+                <div id="statusMessage" class="message"></div>
+                <div id="updatedOrderDetails" class="details"></div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        const STATUSES = ['RECEIVED', 'PROCESSING', 'READY', 'DELIVERED'];
+
+        const elements = {
+            totalOrders: document.getElementById('totalOrders'),
+            totalRevenue: document.getElementById('totalRevenue'),
+            activeOrders: document.getElementById('activeOrders'),
+            countReceived: document.getElementById('countReceived'),
+            countProcessing: document.getElementById('countProcessing'),
+            countReady: document.getElementById('countReady'),
+            countDelivered: document.getElementById('countDelivered'),
+            dashboardLoading: document.getElementById('dashboardLoading'),
+            dashboardMessage: document.getElementById('dashboardMessage'),
+            createLoading: document.getElementById('createLoading'),
+            createMessage: document.getElementById('createMessage'),
+            ordersLoading: document.getElementById('ordersLoading'),
+            ordersMessage: document.getElementById('ordersMessage'),
+            ordersTableBody: document.getElementById('ordersTableBody'),
+            ordersEmpty: document.getElementById('ordersEmpty'),
+            statusLoading: document.getElementById('statusLoading'),
+            statusMessage: document.getElementById('statusMessage'),
+            updatedOrderDetails: document.getElementById('updatedOrderDetails'),
+            garmentList: document.getElementById('garmentList')
+        };
+
+        document.querySelectorAll('.tab-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach((tab) => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach((panel) => panel.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+
+                if (button.dataset.tab === 'dashboard') {
+                    loadDashboard();
+                }
+
+                if (button.dataset.tab === 'orders') {
+                    loadOrders();
+                }
+            });
+        });
+
+        document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
+        document.getElementById('addGarment').addEventListener('click', () => addGarmentRow());
+        document.getElementById('orderForm').addEventListener('submit', createOrder);
+        document.getElementById('orderForm').addEventListener('reset', () => {
+            setTimeout(() => {
+                elements.garmentList.innerHTML = '';
+                addGarmentRow();
+                hideMessage(elements.createMessage);
+            }, 0);
+        });
+        document.getElementById('filterStatus').addEventListener('change', loadOrders);
+        document.getElementById('searchCustomer').addEventListener('input', debounce(loadOrders, 350));
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('searchCustomer').value = '';
+            loadOrders();
+        });
+        document.getElementById('statusForm').addEventListener('submit', updateStatus);
+
+        function setLoading(element, isLoading, text = 'Loading...') {
+            element.textContent = isLoading ? text : '';
+        }
+
+        function showMessage(element, type, text) {
+            element.className = `message show ${type}`;
+            element.textContent = text;
+        }
+
+        function hideMessage(element) {
+            element.className = 'message';
+            element.textContent = '';
+        }
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                ...options
+            });
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : null;
+
+            if (!response.ok) {
+                const message = data?.message || data?.error || `Request failed with status ${response.status}`;
+                throw new Error(message);
+            }
+
+            return data;
+        }
+
+        async function loadDashboard() {
+            hideMessage(elements.dashboardMessage);
+            setLoading(elements.dashboardLoading, true);
+
+            try {
+                const dashboard = await requestJson(`${API_BASE}/dashboard`);
+                const ordersByStatus = normalizeStatusCounts(dashboard.ordersByStatus || {});
+                const activeOrders = ordersByStatus.RECEIVED + ordersByStatus.PROCESSING + ordersByStatus.READY;
+
+                elements.totalOrders.textContent = dashboard.totalOrders ?? 0;
+                elements.totalRevenue.textContent = formatCurrency(dashboard.totalRevenue ?? 0);
+                elements.activeOrders.textContent = activeOrders;
+                elements.countReceived.textContent = ordersByStatus.RECEIVED;
+                elements.countProcessing.textContent = ordersByStatus.PROCESSING;
+                elements.countReady.textContent = ordersByStatus.READY;
+                elements.countDelivered.textContent = ordersByStatus.DELIVERED;
+            } catch (error) {
+                showMessage(elements.dashboardMessage, 'error', userFriendlyError(error));
+            } finally {
+                setLoading(elements.dashboardLoading, false);
+            }
+        }
+
+        async function createOrder(event) {
+            event.preventDefault();
+            hideMessage(elements.createMessage);
+            setLoading(elements.createLoading, true, 'Creating...');
+
+            const submitButton = document.getElementById('submitOrder');
+            submitButton.disabled = true;
+
+            try {
+                const payload = {
+                    customerName: document.getElementById('customerName').value.trim(),
+                    phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                    garments: collectGarments()
+                };
+
+                const estimatedDelivery = document.getElementById('estimatedDelivery').value;
+                if (estimatedDelivery) {
+                    payload.estimatedDelivery = estimatedDelivery.length === 16
+                        ? `${estimatedDelivery}:00`
+                        : estimatedDelivery;
+                }
+
+                const order = await requestJson(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                showMessage(
+                    elements.createMessage,
+                    'success',
+                    `Order created successfully. ID: ${order.id}. Total bill: ${formatCurrency(order.totalBill)}.`
+                );
+                document.getElementById('orderForm').reset();
+                elements.garmentList.innerHTML = '';
+                addGarmentRow();
+                loadDashboard();
+            } catch (error) {
+                showMessage(elements.createMessage, 'error', userFriendlyError(error));
+            } finally {
+                submitButton.disabled = false;
+                setLoading(elements.createLoading, false);
+            }
+        }
+
+        async function loadOrders() {
+            hideMessage(elements.ordersMessage);
+            setLoading(elements.ordersLoading, true);
+
+            try {
+                const status = document.getElementById('filterStatus').value;
+                const customerName = document.getElementById('searchCustomer').value.trim();
+                const hasFilters = status || customerName;
+                const url = hasFilters
+                    ? `${API_BASE}/orders/filter?${new URLSearchParams(removeEmpty({ status, customerName })).toString()}`
+                    : `${API_BASE}/orders`;
+                const orders = await requestJson(url);
+                renderOrders(orders || []);
+            } catch (error) {
+                renderOrders([]);
+                showMessage(elements.ordersMessage, 'error', userFriendlyError(error));
+            } finally {
+                setLoading(elements.ordersLoading, false);
+            }
+        }
+
+        async function updateStatus(event) {
+            event.preventDefault();
+            hideMessage(elements.statusMessage);
+            elements.updatedOrderDetails.innerHTML = '';
+            setLoading(elements.statusLoading, true, 'Updating...');
+
+            const submitButton = document.getElementById('submitStatus');
+            submitButton.disabled = true;
+
+            try {
+                const id = document.getElementById('statusOrderId').value.trim();
+                const newStatus = document.getElementById('newStatus').value;
+                const order = await requestJson(
+                    `${API_BASE}/orders/${encodeURIComponent(id)}/status?newStatus=${encodeURIComponent(newStatus)}`,
+                    { method: 'PATCH' }
+                );
+
+                showMessage(elements.statusMessage, 'success', 'Order status updated successfully.');
+                renderOrderDetails(order);
+                loadDashboard();
+            } catch (error) {
+                showMessage(elements.statusMessage, 'error', userFriendlyError(error));
+            } finally {
+                submitButton.disabled = false;
+                setLoading(elements.statusLoading, false);
+            }
+        }
+
+        function addGarmentRow(value = {}) {
+            const row = document.createElement('div');
+            row.className = 'garment-row';
+            row.innerHTML = `
+                <div class="field">
+                    <label>Garment Type</label>
+                    <input class="garment-type" type="text" required value="${escapeHtml(value.garmentType || '')}">
+                </div>
+                <div class="field">
+                    <label>Quantity</label>
+                    <input class="garment-quantity" type="number" min="1" step="1" required value="${value.quantity || 1}">
+                </div>
+                <div class="field">
+                    <label>Price Per Item</label>
+                    <input class="garment-price" type="number" min="0" step="0.01" required value="${value.pricePerItem || ''}">
+                </div>
+                <button class="btn danger remove-garment" type="button">Remove</button>
+            `;
+            row.querySelector('.remove-garment').addEventListener('click', () => {
+                if (elements.garmentList.children.length > 1) {
+                    row.remove();
+                }
+            });
+            elements.garmentList.appendChild(row);
+        }
+
+        function collectGarments() {
+            return [...elements.garmentList.querySelectorAll('.garment-row')].map((row) => ({
+                garmentType: row.querySelector('.garment-type').value.trim(),
+                quantity: Number(row.querySelector('.garment-quantity').value),
+                pricePerItem: Number(row.querySelector('.garment-price').value)
+            }));
+        }
+
+        function renderOrders(orders) {
+            elements.ordersTableBody.innerHTML = '';
+            elements.ordersEmpty.style.display = orders.length ? 'none' : 'block';
+
+            orders.forEach((order) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(order.id || '')}</td>
+                    <td>${escapeHtml(order.customerName || '')}</td>
+                    <td>${escapeHtml(order.phoneNumber || '')}</td>
+                    <td>${statusBadge(order.status)}</td>
+                    <td>${formatCurrency(order.totalBill || 0)}</td>
+                    <td>${formatDate(order.createdAt)}</td>
+                    <td>${formatDate(order.estimatedDelivery)}</td>
+                `;
+                elements.ordersTableBody.appendChild(row);
+            });
+        }
+
+        function renderOrderDetails(order) {
+            elements.updatedOrderDetails.innerHTML = `
+                ${detailItem('Order ID', order.id)}
+                ${detailItem('Customer', order.customerName)}
+                ${detailItem('Phone', order.phoneNumber)}
+                ${detailHtmlItem('Status', statusBadge(order.status))}
+                ${detailItem('Total Bill', formatCurrency(order.totalBill || 0))}
+                ${detailItem('Estimated Delivery', formatDate(order.estimatedDelivery))}
+            `;
+        }
+
+        function detailItem(label, value) {
+            return detailHtmlItem(label, escapeHtml(value || '-'));
+        }
+
+        function detailHtmlItem(label, value) {
+            return `
+                <div class="detail-item">
+                    <div class="detail-label">${label}</div>
+                    <div class="detail-value">${value || '-'}</div>
+                </div>
+            `;
+        }
+
+        function statusBadge(status) {
+            const safeStatus = STATUSES.includes(status) ? status : 'RECEIVED';
+            return `<span class="badge ${safeStatus}">${safeStatus}</span>`;
+        }
+
+        function normalizeStatusCounts(source) {
+            return STATUSES.reduce((counts, status) => {
+                counts[status] = Number(source[status] || 0);
+                return counts;
+            }, {});
+        }
+
+        function removeEmpty(params) {
+            return Object.fromEntries(Object.entries(params).filter(([, value]) => value));
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR'
+            }).format(Number(value || 0));
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '-';
+            }
+
+            return new Intl.DateTimeFormat('en-IN', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(new Date(value));
+        }
+
+        function userFriendlyError(error) {
+            if (error instanceof SyntaxError) {
+                return 'The server returned an unexpected response. Please try again.';
+            }
+
+            if (error.message === 'Failed to fetch') {
+                return 'Unable to reach the backend at http://localhost:8080. Please check that Spring Boot is running.';
+            }
+
+            return error.message || 'Something went wrong. Please try again.';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function debounce(callback, delay) {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => callback(...args), delay);
+            };
+        }
+
+        addGarmentRow();
+        loadDashboard();
+    </script>
+</body>
+</html>
