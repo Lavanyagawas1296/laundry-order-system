@@ -40,10 +40,49 @@ Rules: PostgreSQL compatible, use Lombok @Data @Builder
 
 ### 2. Entity Structure Review
 **Prompt:**
-"Analyze this assignment PDF and check if my Order entity
-structure covers all required features:
-- Create order, track status, calculate billing,
-  filter orders, dashboard data, estimated delivery date"
+I'm building a laundry order management system using
+Spring Boot 3, Spring Data JPA, PostgreSQL, and Lombok.
+
+The system needs to:
+- Create orders with garment items
+- Track and update order status
+- Filter orders by status, customer name, phone number
+- Show dashboard: total orders, total revenue, orders per status
+- Support estimated delivery date (optional field)
+
+Create two classes:
+
+1. Order.java — JPA entity with:
+   - id: UUID, auto-generated using @GeneratedValue(strategy = GenerationType.UUID)
+   - customerName: String
+   - phoneNumber: String
+   - status: Enum (RECEIVED, PROCESSING, READY, DELIVERED), stored as String in DB
+   - totalBill: Double
+   - createdAt: LocalDateTime, auto-set before persist using @PrePersist
+   - estimatedDelivery: LocalDateTime (nullable)
+   - garments: List<GarmentItem>, stored as @ElementCollection in separate table
+
+   Annotations: @Entity, @Data, @Builder, @NoArgsConstructor, @AllArgsConstructor
+   Table: @Table(name="laundry_orders") with @Index on status and phoneNumber
+
+2. GarmentItem.java — Embeddable class with:
+   - garmentType: String
+   - quantity: Integer
+   - pricePerItem: Double
+
+   Annotations: @Embeddable, @Data, @NoArgsConstructor, @AllArgsConstructor
+
+3. OrderStatus.java — Enum with values:
+   RECEIVED, PROCESSING, READY, DELIVERED
+
+Rules:
+- No extra fields or methods beyond what's listed
+- No MapStruct, no unnecessary interfaces
+- PostgreSQL compatible only
+- @PrePersist to auto-set createdAt
+- Keep it production-clean and readable
+
+1st analyze pdf wisely...
 
 **What AI gave:** Gap analysis showing missing estimatedDelivery field
 and missing @Index for filter performance
@@ -77,10 +116,35 @@ count grouped by field and sum
 ---
 
 ### 4. DTO Classes
-**Prompt:** I need two DTO classes for my laundry order API:
+**Prompt:** I'm building a laundry order management system using
+Spring Boot 3 and Lombok.
 
-1. OrderRequest - data user sends when creating order
-2. OrderResponse - data API returns after creating/fetching order
+Create two DTO classes in package com.laundry.dto:
+
+1. OrderRequest.java — data user sends when creating an order:
+   - customerName: String
+   - phoneNumber: String
+   - garments: List<GarmentItem> (import from com.laundry.entity)
+   - estimatedDelivery: LocalDateTime (nullable, optional)
+
+   Annotations: @Data, @NoArgsConstructor, @AllArgsConstructor, @Builder
+
+2. OrderResponse.java — data API returns after create/fetch:
+   - id: String
+   - customerName: String
+   - phoneNumber: String
+   - status: OrderStatus (import from com.laundry.enums)
+   - totalBill: Double
+   - createdAt: LocalDateTime
+   - estimatedDelivery: LocalDateTime
+   - garments: List<GarmentItem>
+
+   Annotations: @Data, @NoArgsConstructor, @AllArgsConstructor, @Builder
+
+Rules:
+- No validation annotations yet
+- No MapStruct
+- Keep it simple
 
 **What AI gave:**  Generated two DTO classes — OrderRequest (customerName, phoneNumber, garments) and OrderResponse (id, customerName, phoneNumber, status, totalBill, createdAt, estimatedDelivery, garments) with proper structure and fields.
 **What I fixed:** Nothing — code was correct
@@ -141,6 +205,23 @@ null safety helpers, clean mapToResponse utility
 **What I fixed:** Nothing — code was production quality
 **What I learned:** Constructor injection over @Autowired,
 stream().toList() in Java 16+, handling combined filters
+
+---
+
+### 6. Controller Layer
+**Prompt:**
+"Create OrderController.java in package com.laundry.controller
+with 5 endpoints: POST /orders (201), GET /orders (200),
+PATCH /orders/{id}/status with @RequestParam newStatus,
+GET /orders/filter with optional status/customerName/phoneNumber,
+GET /dashboard. Use @RequiredArgsConstructor, proper HTTP codes,
+no try-catch, no MapStruct."
+
+**What AI gave:** Two separate controllers - OrderController
+and DashboardController, clean code with correct annotations
+**What I fixed:** Nothing — structure was correct
+**What I learned:** Separating dashboard into its own controller
+keeps OrderController focused on order operations only
 
 ---
 

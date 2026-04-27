@@ -1,0 +1,11 @@
+{
+  "info": {
+    "_postman_id": "8706afc7-c24b-40b6-b404-72412e05d846",
+    "name": "postman_collection.json",
+    "description": "StartFragment\n\nCollection of REST API endpoints for the Spring Boot Virality Engine project. Includes requests for user management, post creation, commenting, bot interaction, and virality scoring. Designed to test rate limiting, notification flow, and backend logic using Redis and PostgreSQL.\n\nEndFragment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43556752",
+    "_collection_link": "https://go.postman.co/collection/43556752-8706afc7-c24b-40b6-b404-72412e05d846?source=collection_link"
+  },
+  "item": []
+}
