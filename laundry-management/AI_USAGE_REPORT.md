@@ -87,6 +87,63 @@ count grouped by field and sum
 
 ---
 
+### 5. Service Layer
+**Prompt:**  I'm building a laundry order management system using
+Spring Boot 3, Spring Data JPA, PostgreSQL, and Lombok.
+
+Create OrderService.java in package com.laundry.service.
+
+Inject: OrderRepository (constructor injection, not @Autowired)
+
+Create these methods:
+
+1. createOrder(OrderRequest request) → OrderResponse
+   - Map OrderRequest to Order entity
+   - Calculate totalBill: sum of (quantity * pricePerItem) 
+     for each GarmentItem in request
+   - Set initial status to OrderStatus.RECEIVED
+   - Set estimatedDelivery to 3 days from now if not provided
+   - Save to DB using repository
+   - Map saved Order to OrderResponse and return
+
+2. updateOrderStatus(String orderId, OrderStatus newStatus) → OrderResponse
+   - Find order by id, throw RuntimeException 
+     with message "Order not found" if missing
+   - Update status
+   - Save and return as OrderResponse
+
+3. getAllOrders() → List<OrderResponse>
+   - Return all orders mapped to OrderResponse
+
+4. filterOrders(OrderStatus status, String customerName, 
+   String phoneNumber) → List<OrderResponse>
+   - If status provided → filter by status
+   - If customerName provided → filter by customerName
+   - If phoneNumber provided → filter by phoneNumber
+   - If status + customerName both provided → use combined query
+   - All params are optional (nullable)
+
+5. getDashboard() → Map<String, Object>
+   - totalOrders: count of all orders
+   - totalRevenue: sum of all totalBill
+   - ordersByStatus: count per status
+
+Rules:
+- Use @Service annotation
+- Private helper method mapToResponse() to convert 
+  Order → OrderResponse (reuse across methods)
+- No static methods
+- No MapStruct
+- Simple, readable code only
+
+**What AI gave:** Complete service with all 5 methods,
+null safety helpers, clean mapToResponse utility
+**What I fixed:** Nothing — code was production quality
+**What I learned:** Constructor injection over @Autowired,
+stream().toList() in Java 16+, handling combined filters
+
+---
+
 ## Where AI Helped Most
 - Scaffolding boilerplate saved ~2 hours
 - Catching missing fields via requirement analysis
